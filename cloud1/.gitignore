@@ -1,0 +1,4 @@
+*~
+*.pem
+.vagrant
+aws.yml

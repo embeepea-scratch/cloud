@@ -1,0 +1,5 @@
+#! /bin/bash
+
+# puppet-test
+
+puppet apply --noop --modulepath=./puppet/modules --fileserverconfig=/vagrant/puppet/fileserver.conf puppet/site.pp

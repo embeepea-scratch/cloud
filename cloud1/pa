@@ -1,0 +1,5 @@
+#! /bin/bash
+
+# puppet-apply
+
+puppet apply --modulepath=./puppet/modules:/etc/puppet/modules --fileserverconfig=/vagrant/puppet/fileserver.conf puppet/site.pp
