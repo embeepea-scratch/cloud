@@ -149,6 +149,23 @@ exec { 'secure-mysql-server' :
 }
 
 
+class drutils-server {
+
+  package { 'drutils':
+    ensure => installed
+  }
+
+  file { ["/var/drutils", "/var/drutils/mysql"] :
+    ensure => directory,
+    owner  => "root",
+    group  => "root",
+    mode => 0700
+  }
+
+}
+
+class { 'drutils-server': }
+
 ########################################################################
 
 ###   #                  www.billy.org   puppet:///files/www.billy.org.conf
