@@ -163,6 +163,14 @@ package { 'php':
   ensure => installed,
 }
 
+package { 'php-gd':
+  ensure => installed,
+}
+
+package { 'php-domxml-php4-php5' :
+  ensure => installed,
+}
+
 class pear-setup {
   include pear
   pear::package { "PEAR": }
