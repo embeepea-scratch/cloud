@@ -155,16 +155,26 @@ class drutils-server {
     ensure => installed
   }
 
-  file { ["/var/drutils", "/var/drutils/mysql"] :
-    ensure => directory,
-    owner  => "root",
-    group  => "root",
-    mode => 0700
-  }
-
 }
 
 class { 'drutils-server': }
+
+package { 'php':
+  ensure => installed,
+}
+
+class pear-setup {
+  include pear
+  pear::package { "PEAR": }
+  pear::package { "drush":
+    repository => "pear.drush.org",
+  }
+}
+
+class { 'pear-setup' :
+  require => Package["php"]
+}
+
 
 ########################################################################
 
