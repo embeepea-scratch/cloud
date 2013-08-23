@@ -8,6 +8,11 @@ exec { 'set-hostname':
     unless  => '/bin/grep -q "HOSTNAME=cloud1" /etc/sysconfig/network',
 }
 
+exec { 'etc-hosts':
+    command => '/bin/echo "127.0.0.1 cloud1" > /etc/hosts',
+    unless  => '/bin/grep -q "127.0.0.1 cloud1" /etc/hosts',
+}
+
 package { 'emacs-nox':
   ensure => installed
 }
@@ -67,7 +72,7 @@ class git-server {
     ensure => directory,
     owner  => "git",
     group  => "git",
-    mode => 0755
+    mode => 2775
   }
 
   file { "/git":
@@ -75,7 +80,7 @@ class git-server {
     ensure => directory,
     owner  => "git",
     group  => "git",
-    mode => 0755
+    mode => 2775
   }
 
   file { "/home/git":
@@ -101,7 +106,13 @@ class git-server {
     mode => 0644
   }
 
+  exec { 'vagrant-user-in-git-goup':
+    command => '/bin/grep -q vagrant /etc/passwd && /usr/sbin/usermod -a -G git vagrant',
+    unless  => '/bin/grep -q vagrant /etc/passwd && ( /usr/bin/groups vagrant | /bin/grep -q git )'
+  }
+
 }
+
 
 class apache-vsites-server {
 
@@ -112,7 +123,7 @@ class apache-vsites-server {
     ensure => directory,
     owner  => "git",
     group  => "git",
-    mode => 0755
+    mode => 2775
   }
 
   file { "/etc/httpd/conf.d/vsites.conf" :
@@ -171,81 +182,90 @@ package { 'php-domxml-php4-php5' :
   ensure => installed,
 }
 
-class pear-setup {
-  include pear
-  pear::package { "PEAR": }
-  pear::package { "drush":
-    repository => "pear.drush.org",
-  }
+# class pear-setup {
+#   include pear
+#   pear::package { "PEAR": }
+#   pear::package { "Console_Table": }
+#   pear::package { "drush":
+#     repository => "pear.drush.org",
+#   }
+# }
+# 
+# class { 'pear-setup' :
+#   require => Package["php"]
+# }
+
+package { 'php-pear':
+  ensure => installed
 }
 
-class { 'pear-setup' :
-  require => Package["php"]
+exec { 'install-drush' :
+    command => '/usr/bin/pear channel-discover pear.drush.org ; /usr/bin/pear install drush/drush',
+    unless => '/usr/bin/test -f /usr/bin/drush'
 }
 
-
-########################################################################
-
-###   #                  www.billy.org   puppet:///files/www.billy.org.conf
-###   define line($file, $line, $ensure = 'present') {
-###       case $ensure {
-###           default : { err ( "unknown ensure value ${ensure}" ) }
-###           present: {
-###               exec { "/bin/echo '${line}' >> '${file}'":
-###                   unless => "/bin/grep -qFx '${line}' '${file}'"
-###               }
-###           }
-###           absent: {
-###               exec { "/bin/grep -vFx '${line}' '${file}' | /usr/bin/tee '${file}' > /dev/null 2>&1":
-###                 onlyif => "/bin/grep -qFx '${line}' '${file}'"
-###               }
-###           }
-###       }
-###   }
-###   
-###   class apache-vhost($vhost_name,    $vhost_source) {
-###   
-###     line { "/etc/hosts-${vhost_name}" :
-###       file => '/etc/hosts',
-###       line => "127.0.0.1    ${vhost_name}"
-###     }
-###   
-###     file { "/var/${vhost_name}" :
-###       ensure => directory
-###     }
-###   
-###   #  file { "/var/${vhost_name}/html" :
-###   #    require => File["/var/${vhost_name}"],
-###   #    ensure => directory
-###   #  }
-###   
-###     file { "/etc/httpd/conf.d/${vhost_name}.conf" :
-###       require => [ Package['httpd'], Line["/etc/hosts-${vhost_name}"] ],
-###       ensure  => file,
-###       source  => $vhost_source
-###     }
-###   
-###   }
-###   
-###   
-###   class apache-vhost-git($vhost_name, $vhost_source, $git_source) {
-###   
-###     class { "apache-vhost" :
-###       vhost_name   => $vhost_name,
-###       vhost_source => $vhost_source
-###     }
-###   
-###     package { "git" :
-###       ensure => present
-###     }
-###   
-###     vcsrepo { $vhost_name:
-###       require  => Package['git'],
-###   #   require  => apache-vhost[$vhost_name],
-###       path     => "/var/www.billy.org/html",
-###       ensure   => present,
-###       provider => git,
-###       source   => $git_source
-###     }
-###   
-###   }
+# ########################################################################
+# 
+# ###   #                  www.billy.org   puppet:///files/www.billy.org.conf
+# ###   define line($file, $line, $ensure = 'present') {
+# ###       case $ensure {
+# ###           default : { err ( "unknown ensure value ${ensure}" ) }
+# ###           present: {
+# ###               exec { "/bin/echo '${line}' >> '${file}'":
+# ###                   unless => "/bin/grep -qFx '${line}' '${file}'"
+# ###               }
+# ###           }
+# ###           absent: {
+# ###               exec { "/bin/grep -vFx '${line}' '${file}' | /usr/bin/tee '${file}' > /dev/null 2>&1":
+# ###                 onlyif => "/bin/grep -qFx '${line}' '${file}'"
+# ###               }
+# ###           }
+# ###       }
+# ###   }
+# ###   
+# ###   class apache-vhost($vhost_name,    $vhost_source) {
+# ###   
+# ###     line { "/etc/hosts-${vhost_name}" :
+# ###       file => '/etc/hosts',
+# ###       line => "127.0.0.1    ${vhost_name}"
+# ###     }
+# ###   
+# ###     file { "/var/${vhost_name}" :
+# ###       ensure => directory
+# ###     }
+# ###   
+# ###   #  file { "/var/${vhost_name}/html" :
+# ###   #    require => File["/var/${vhost_name}"],
+# ###   #    ensure => directory
+# ###   #  }
+# ###   
+# ###     file { "/etc/httpd/conf.d/${vhost_name}.conf" :
+# ###       require => [ Package['httpd'], Line["/etc/hosts-${vhost_name}"] ],
+# ###       ensure  => file,
+# ###       source  => $vhost_source
+# ###     }
+# ###   
+# ###   }
+# ###   
+# ###   
+# ###   class apache-vhost-git($vhost_name, $vhost_source, $git_source) {
+# ###   
+# ###     class { "apache-vhost" :
+# ###       vhost_name   => $vhost_name,
+# ###       vhost_source => $vhost_source
+# ###     }
+# ###   
+# ###     package { "git" :
+# ###       ensure => present
+# ###     }
+# ###   
+# ###     vcsrepo { $vhost_name:
+# ###       require  => Package['git'],
+# ###   #   require  => apache-vhost[$vhost_name],
+# ###       path     => "/var/www.billy.org/html",
+# ###       ensure   => present,
+# ###       provider => git,
+# ###       source   => $git_source
+# ###     }
+# ###   
+# ###   }
