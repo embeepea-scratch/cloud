@@ -110,6 +110,18 @@ class git-server {
     command => '/bin/grep -q vagrant /etc/passwd && /usr/sbin/usermod -a -G git vagrant',
     unless  => '/bin/grep -q vagrant /etc/passwd && ( /usr/bin/groups vagrant | /bin/grep -q git )'
   }
+  exec { 'vagrant-user-in-nappl-goup':
+    command => '/bin/grep -q vagrant /etc/passwd && /usr/sbin/usermod -a -G nappl vagrant',
+    unless  => '/bin/grep -q vagrant /etc/passwd && ( /usr/bin/groups vagrant | /bin/grep -q nappl )'
+  }
+  exec { 'etc-hosts-writable-by-nappl-group':
+    command => '/bin/grep -q nappl /etc/group && (/bin/chgrp nappl /etc/hosts ; /bin/chmod g+w /etc/hosts)'
+  }
+  exec { 'vagrant-user-has-mysql-root-access':
+    require => Class["mysql::server"],
+    command => '/bin/grep -q vagrant /etc/passwd && ( /bin/cp /root/.my.cnf /home/vagrant ; /bin/chown vagrant.vagrant /home/vagrant/.my.cnf )',
+    unless => '/bin/grep -q vagrant /etc/passwd && /usr/bin/test -f /home/vagrant/.my.cnf'
+  }
 
 }
 
