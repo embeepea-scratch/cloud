@@ -55,66 +55,69 @@ class apache-server {
 
 class git-server {
 
-  group { "git":
-          ensure => present,
-          gid => 721
-  }
-
-  user { "git":
-          ensure => present,
-          uid => 721,
-          gid => "git",
-          require => Group["git"]
-  }
-
-  file { "/prod":
-    require => User["git"],
-    ensure => directory,
-    owner  => "git",
-    group  => "git",
-    mode => 2775
-  }
-
-  file { "/git":
-    require => User["git"],
-    ensure => directory,
-    owner  => "git",
-    group  => "git",
-    mode => 2775
-  }
-
-  file { "/home/git":
-    ensure => directory,
-    owner  => "git",
-    group  => "git",
-    mode => 0755
-  }
-
-  file { "/home/git/.ssh":
-    require => File["/home/git"],
-    ensure => directory,
-    owner  => "git",
-    group  => "git",
-    mode => 0700
-  }
-
-  file { "/home/git/.ssh/authorized_keys":
-    require => File["/home/git/.ssh"],
-    ensure => present,
-    owner  => "git",
-    group  => "git",
-    mode => 0644
-  }
+#  group { "git":
+#          ensure => present,
+#          gid => 721
+#  }
+#
+#  user { "git":
+#          ensure => present,
+#          uid => 721,
+#          gid => "git",
+#          require => Group["git"]
+#  }
+#
+#  file { "/prod":
+#    require => User["git"],
+#    ensure => directory,
+#    owner  => "git",
+#    group  => "git",
+#    mode => 2775
+#  }
+#
+#  file { "/git":
+#    require => User["git"],
+#    ensure => directory,
+#    owner  => "git",
+#    group  => "git",
+#    mode => 2775
+#  }
+#
+#  file { "/home/git":
+#    ensure => directory,
+#    owner  => "git",
+#    group  => "git",
+#    mode => 0755
+#  }
+#
+#  file { "/home/git/.ssh":
+#    require => File["/home/git"],
+#    ensure => directory,
+#    owner  => "git",
+#    group  => "git",
+#    mode => 0700
+#  }
+#
+#  file { "/home/git/.ssh/authorized_keys":
+#    require => File["/home/git/.ssh"],
+#    ensure => present,
+#    owner  => "git",
+#    group  => "git",
+#    mode => 0644
+#  }
 
   exec { 'vagrant-user-in-git-goup':
+    require => Package['drutils'],
     command => '/bin/grep -q vagrant /etc/passwd && /usr/sbin/usermod -a -G git vagrant',
     unless  => '/bin/grep -q vagrant /etc/passwd && ( /usr/bin/groups vagrant | /bin/grep -q git )'
   }
   exec { 'vagrant-user-in-nappl-goup':
+    require => Package['drutils'],
     command => '/bin/grep -q vagrant /etc/passwd && /usr/sbin/usermod -a -G nappl vagrant',
     unless  => '/bin/grep -q vagrant /etc/passwd && ( /usr/bin/groups vagrant | /bin/grep -q nappl )'
   }
   exec { 'etc-hosts-writable-by-nappl-group':
+    require => Package['drutils'],
     command => '/bin/grep -q nappl /etc/group && (/bin/chgrp nappl /etc/hosts ; /bin/chmod g+w /etc/hosts)'
   }
   exec { 'vagrant-user-has-mysql-root-access':
@@ -130,22 +133,22 @@ class apache-vsites-server {
 
   class { "apache-server": }
   
-  file { ["/var/vsites", "/var/vsites/conf", "/var/vsites/mysql"] :
-    require => Class["git-server"],
-    ensure => directory,
-    owner  => "git",
-    group  => "git",
-    mode => 2775
-  }
-
-  file { "/etc/httpd/conf.d/vsites.conf" :
-    require => Class["apache-server"],
-    ensure => present,
-content => "ServerName ${hostname}:80
-NameVirtualHost *:80
-Include /var/vsites/conf/*.conf
-"
-  }
+#  file { ["/var/vsites", "/var/vsites/conf", "/var/vsites/mysql"] :
+#    require => Class["git-server"],
+#    ensure => directory,
+#    owner  => "git",
+#    group  => "git",
+#    mode => 2775
+#  }
+#
+#  file { "/etc/httpd/conf.d/vsites.conf" :
+#    require => Class["apache-server"],
+#    ensure => present,
+#content => "ServerName ${hostname}:80
+#NameVirtualHost *:80
+#Include /var/vsites/conf/*.conf
+#"
+#  }
 
   file { "/usr/local/bin/makeproj":
     ensure => present,

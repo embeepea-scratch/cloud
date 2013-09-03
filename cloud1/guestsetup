@@ -1,0 +1,6 @@
+#! /bin/bash
+
+# run this script on the guest to set up ssh keys and dotfiles
+
+test -f /vagrant/id_rsa && ( mv /vagrant/id_rsa* ~/.ssh ; cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys )
+( cd ~ ; git clone https://github.com/embeepea/dotfiles ; cd dotfiles ; perl install )

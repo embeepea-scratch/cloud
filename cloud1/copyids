@@ -1,3 +1,5 @@
 #! /bin/bash
 
+# run this script on the host system to copy ssh keys from host to guest
+
 cp ~/.ssh/id* .
